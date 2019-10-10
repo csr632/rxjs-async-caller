@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "jsx": "preserve",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "sourceMap": true,
+    "allowJs": false,
+    "lib": [
+      "es6",
+      "dom"
+    ],
+    "rootDir": "src",
+    "moduleResolution": "node",
+    "strict": true
+  }
+}
