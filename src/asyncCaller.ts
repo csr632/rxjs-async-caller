@@ -52,6 +52,9 @@ export default function asyncCaller<QueryType, ResponseType>(opts: {
       })
     );
 
+  // 返回结果是高阶Observable，好处是，
+  // query$更新时，并不会立刻发起请求，而是emit一个代表一次请求过程的Observable，
+  // 当有人订阅这个Observable的时候，才会真正发出请求
   return query$.pipe(
     map(fetchResult),
     // 让订阅者立刻获得【最新的请求流】
