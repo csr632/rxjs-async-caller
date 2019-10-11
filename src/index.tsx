@@ -1,7 +1,7 @@
 import * as React from "react";
 import { render } from "react-dom";
 import { useObservable } from "rxjs-hooks";
-import asyncCaller from "./asyncCaller";
+import asyncCallerWithCache from "./asyncCallerWithCache";
 import { Subject } from "rxjs";
 import { filter } from "rxjs/operators";
 
@@ -11,7 +11,7 @@ function App() {
   const [invalidateCache, setInvalidateCache] = React.useState("");
   const [invalidateCacheSignal$] = React.useState(() => new Subject<string>());
   const [result$] = React.useState(() =>
-    asyncCaller<string, string>({
+    asyncCallerWithCache<string, string>({
       query$: query$.pipe(filter(q => !!q)),
       calleeFn: (query: string) => {
         console.log(`actual sending request! query: ${query}`);
@@ -20,7 +20,7 @@ function App() {
             if (query === "111") {
               rej("err!");
             }
-            res("response!");
+            res(`response for ${query}`);
           }, 2000);
         });
       },
