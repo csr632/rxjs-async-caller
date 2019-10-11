@@ -16,16 +16,24 @@ function App() {
       calleeFn: (query: string) => {
         console.log(`actual sending request! query: ${query}`);
         return new Promise((res, rej) => {
+          if (query === "222") {
+            setTimeout(() => {
+              res("resolve after timeout");
+            }, 2000);
+            return;
+          }
           setTimeout(() => {
             if (query === "111") {
               rej("err!");
+              return;
             }
             res(`response for ${query}`);
-          }, 2000);
+          }, 1000);
         });
       },
       getCacheKey: q => q,
-      invalidateCache$: invalidateCacheSignal$
+      invalidateCache$: invalidateCacheSignal$,
+      timeout: 1500
     })
   );
 
