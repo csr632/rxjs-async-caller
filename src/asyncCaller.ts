@@ -18,7 +18,7 @@ export type GetResultType<QueryType, ResponseType> =
   | { type: "error"; query: QueryType; error: any };
 
 export type IRetryDecision =
-  | { type: "delay"; time: number }
+  | { type: "retry"; delay: number }
   | { type: "giveUp"; reason: any };
 /**
  * 异步调用管理。
@@ -61,8 +61,8 @@ export default function asyncCaller<QueryType, ResponseType>(opts: {
           mergeMap((error, index) => {
             if (typeof decideRetry !== "function") return throwError(error);
             const decision = decideRetry(error, index);
-            if (decision.type === "delay") {
-              return timer(decision.time);
+            if (decision.type === "retry") {
+              return timer(decision.delay);
             }
             if (decision.type === "giveUp") {
               return throwError(decision.reason);
