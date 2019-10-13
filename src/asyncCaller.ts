@@ -9,7 +9,8 @@ import {
   shareReplay,
   timeout,
   retryWhen,
-  mergeMap
+  mergeMap,
+  scan
 } from "rxjs/operators";
 
 export type GetResultType<QueryType, ResponseType> =
@@ -20,6 +21,14 @@ export type GetResultType<QueryType, ResponseType> =
 export type IRetryDecision =
   | { type: "retry"; delay: number }
   | { type: "giveUp"; reason: any };
+
+export interface IAsyncCallerOptions<QueryType, ResponseType> {
+  query$: Observable<QueryType>;
+  calleeFn: (query: QueryType) => Promise<ResponseType>;
+  timeout?: number;
+  decideRetry?: (error: any, context: any) => IRetryDecision;
+}
+
 /**
  * 异步调用管理。
  * 相比直接调用异步过程，通过asyncCaller来调用异步过程能获得以下好处：
@@ -38,12 +47,9 @@ export type IRetryDecision =
  * 你很难在复用异步管理逻辑的同时保证typescript类型安全
  * （因为你需要通过字符串来拼接出state的key）。
  */
-export default function asyncCaller<QueryType, ResponseType>(opts: {
-  query$: Observable<QueryType>;
-  calleeFn: (query: QueryType) => Promise<ResponseType>;
-  timeout?: number;
-  decideRetry?: (error: any, index: number) => IRetryDecision;
-}): Observable<GetResultType<QueryType, ResponseType>> {
+export default function asyncCaller<QueryType, ResponseType>(
+  opts: IAsyncCallerOptions<QueryType, ResponseType>
+): Observable<GetResultType<QueryType, ResponseType>> {
   type ResultType = GetResultType<QueryType, ResponseType>;
 
   const { query$, calleeFn, timeout: timeoutParam, decideRetry } = opts;
@@ -58,9 +64,17 @@ export default function asyncCaller<QueryType, ResponseType>(opts: {
       typeof timeoutParam === "number" ? timeout(timeoutParam) : identity,
       retryWhen(error$ =>
         error$.pipe(
-          mergeMap((error, index) => {
+          scan(({ context }, error) => ({ context, error }), {
+            // 每个fetchResult流，一直使用同一个context对象引用，从而用户可以使用它来做记录
+            context: {},
+            error: {} as any
+          }),
+          mergeMap(({ context, error }) => {
             if (typeof decideRetry !== "function") return throwError(error);
-            const decision = decideRetry(error, index);
+            const decision = decideRetry(error, context);
+            if (!decision) {
+              return throwError(error);
+            }
             if (decision.type === "retry") {
               return timer(decision.delay);
             }

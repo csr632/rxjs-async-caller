@@ -2,7 +2,13 @@
 
 import { Observable, defer, using, Subject } from "rxjs";
 import { switchMap, startWith, tap, publish, refCount } from "rxjs/operators";
-import asyncCaller, { GetResultType, IRetryDecision } from "./asyncCaller";
+import asyncCaller, { GetResultType, IAsyncCallerOptions } from "./asyncCaller";
+
+export interface IAsyncCallerWithCacheOptions<QueryType, ResponseType>
+  extends IAsyncCallerOptions<QueryType, ResponseType> {
+  getCacheKey: (query: QueryType) => string;
+  invalidateCache$: Observable<QueryType>; // 使缓存失效，发起真实请求
+}
 
 /**
  * 异步调用管理（带缓存）。
@@ -10,14 +16,9 @@ import asyncCaller, { GetResultType, IRetryDecision } from "./asyncCaller";
  * 1. query具有与之前相同的cacheKey时，使用缓存结果
  * 2. 通过invalidateCache$可以控制缓存失效，从而重新调用异步过程
  */
-export default function asyncCallerWithCache<QueryType, ResponseType>(opts: {
-  query$: Observable<QueryType>; // query更新时，先去查看是否有对应缓存
-  calleeFn: (query: QueryType) => Promise<ResponseType>;
-  getCacheKey: (query: QueryType) => string;
-  invalidateCache$: Observable<QueryType>; // 使缓存失效，发起真实请求
-  timeout?: number;
-  decideRetry?: (error: any, index: number) => IRetryDecision;
-}) {
+export default function asyncCallerWithCache<QueryType, ResponseType>(
+  opts: IAsyncCallerWithCacheOptions<QueryType, ResponseType>
+) {
   type ResultType = GetResultType<QueryType, ResponseType>;
 
   const {
