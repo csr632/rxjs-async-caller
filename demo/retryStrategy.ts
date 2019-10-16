@@ -1,4 +1,4 @@
-import { IAsyncCallerOptions } from "../src/asyncCaller";
+import { IAsyncCallerOptions } from "react-rxdi";
 
 const retryStrategy: Pick<
   IAsyncCallerOptions<string, string>,

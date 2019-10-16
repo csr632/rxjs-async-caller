@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useObservable } from "rxjs-hooks";
-import asyncCallerWithCache from "../src/asyncCallerWithCache";
+import { asyncCallerWithCache } from "react-rxdi";
 import { Subject } from "rxjs";
 import { filter } from "rxjs/operators";
 import retryStrategy from "./retryStrategy";

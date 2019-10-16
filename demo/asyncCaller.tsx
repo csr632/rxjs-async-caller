@@ -1,5 +1,5 @@
 import * as React from "react";
-import asyncCaller from "../src/asyncCaller";
+import { asyncCaller } from "react-rxdi";
 import { Subject } from "rxjs";
 import { useObservable } from "rxjs-hooks";
 import { filter } from "rxjs/operators";
